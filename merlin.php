@@ -1,6 +1,9 @@
 <? 
+# merlin or ndoutils
+$backend = "ndoutils";
+
 $con = mysql_connect("localhost", "user", "password") or die("<h3><font color=red>Could not connect to the database!</font></h3>");
-$db = mysql_select_db("merlin", $con);
+$db = mysql_select_db("ndoutils", $con);
 
 ?>
 <div class="dash_unhandled hosts dash">
@@ -9,7 +12,17 @@ $db = mysql_select_db("merlin", $con);
         <table class="dash_table">
             <? 
             #ALL down-hosts
-            $query = "select host_name, alias, count(host_name) from host where last_hard_state = 1 and problem_has_been_acknowledged = 0 group by host_name";
+            switch ($backend) { 
+                case "merlin":
+                    $query = "select host_name, alias, count(host_name) from host where last_hard_state = 1 and problem_has_been_acknowledged = 0 group by host_name";
+                    break;
+                case "ndoutils":
+                    $query = "SELECT nagios_hosts.display_name, nagios_hosts.alias from nagios_hosts";
+                    $query = $query." LEFT JOIN nagios_hoststatus USING (host_object_id)";
+                    $query = $query." WHERE nagios_hoststatus.last_hard_state = 1";
+                    $query = $query." AND nagios_hoststatus.problem_has_been_acknowledged = 0";
+                    break;
+            }
             $result = mysql_query($query);
             $save = "";
             $output = "";
@@ -43,13 +56,27 @@ $db = mysql_select_db("merlin", $con);
             </tr>
             <? 
             # number of hosts down
-            $query = "select count(1) as count from host where last_hard_state = 1";
+            switch ($backend) {
+                case "merlin":
+                    $query = "select count(1) as count from host where last_hard_state = 1";
+                    break;
+                case "ndoutils":
+                    $query = "select count(1) as count from nagios_hoststatus where last_hard_state = 1";
+                    break;
+            }
             $result = mysql_query($query);
             $row = mysql_fetch_array($result);
             $hosts_down = $row[0];
             
             # total number of hosts
-            $query = "select count(1) as count from host";
+            switch ($backend) {
+                case "merlin":
+                    $query = "select count(1) as count from host";
+                    break;
+                case "ndoutils":
+                    $query = "select count(1) as count from nagios_hosts";
+                    break;
+            }
             $result = mysql_query($query);
             $row = mysql_fetch_array($result);
             $total_hosts = $row[0];
@@ -60,13 +87,27 @@ $db = mysql_select_db("merlin", $con);
             
             #### SERVICES
             #
-            $query = "select count(1) as count from service where last_hard_state = 1";
+            switch ($backend) {
+                case "merlin":
+                    $query = "select count(1) as count from service where last_hard_state = 1";
+                    break;
+                case "ndoutils":
+                    $query = "select count(1) as count from nagios_servicestatus where last_hard_state = 1";
+                    break;
+            }
             $result = mysql_query($query);
             $row = mysql_fetch_array($result);
             $services_down = $row[0];
             
-            # total number of hosts
-            $query = "select count(1) as count from service";
+            # total number of services
+            switch ($backend) {
+                case "merlin":
+                    $query = "select count(1) as count from service";
+                    break;
+                case "ndoutils":
+                    $query = "select count(1) as count from nagios_services";
+                    break;
+            }
             $result = mysql_query($query);
             $row = mysql_fetch_array($result);
             $total_services = $row[0];
@@ -123,12 +164,28 @@ $db = mysql_select_db("merlin", $con);
             </tr>
             <? 
             #ALL critical/warning services on hosts not being down
-            $query = "select service.host_name,service.service_description,service.last_hard_state,service.output, service.last_hard_state_change,service.last_check ";
-            $query = $query." from service,host where ";
-            $query = $query." host.host_name = service.host_name and ";
-            $query = $query." service.last_hard_state in (1,2) and ";
-            $query = $query." service.problem_has_been_acknowledged = 0 and host.problem_has_been_acknowledged = 0 and ";
-            $query = $query." host.last_hard_state not like 1 group by service.service_description order by service.last_hard_state";
+            switch ($backend) {
+                case "merlin":
+                    $query = "select service.host_name,service.service_description,service.last_hard_state,service.output, service.last_hard_state_change,service.last_check ";
+                    $query = $query." from service,host where ";
+                    $query = $query." host.host_name = service.host_name and ";
+                    $query = $query." service.last_hard_state in (1,2) and ";
+                    $query = $query." service.problem_has_been_acknowledged = 0 and host.problem_has_been_acknowledged = 0 and ";
+                    $query = $query." host.last_hard_state not like 1 group by service.service_description order by service.last_hard_state";
+                    break;
+                case "ndoutils":
+                    $query = "SELECT nagios_hosts.display_name,nagios_services.display_name,nagios_servicestatus.last_hard_state,nagios_servicestatus.output,nagios_servicestatus.last_hard_state_change,nagios_servicestatus.last_check";
+                    $query = $query." FROM nagios_servicestatus";
+                    $query = $query." LEFT JOIN nagios_services USING (service_object_id)";
+                    $query = $query." LEFT JOIN nagios_hosts USING (host_object_id)";
+                    $query = $query." LEFT JOIN nagios_hoststatus USING (host_object_id)";
+                    $query = $query." WHERE nagios_servicestatus.last_hard_state in (1,2)";
+                    $query = $query." AND nagios_servicestatus.problem_has_been_acknowledged = 0";
+                    $query = $query." AND nagios_hoststatus.problem_has_been_acknowledged = 0";
+                    $query = $query." AND nagios_hoststatus.last_hard_state != 1";
+                    $query = $query." ORDER BY nagios_servicestatus.last_hard_state";
+                    break;
+            }
             $result = mysql_query($query);
             ?>
             <? 
@@ -143,8 +200,18 @@ $db = mysql_select_db("merlin", $con);
                     <td><?php print $row[0] ?></td>
                     <td><?php print $row[1] ?></td>
                     <td><?php print $row[3] ?></td>
-                    <td class="date date_statechange"><?php print date("d-m-Y H:i:s", $row[4]) ?></td>
-                    <td class="date date_lastcheck"><?php print date("d-m-Y H:i:s", $row[5]) ?></td>
+                    <?php
+                    switch ($backend) {
+                        case "merlin":
+                            echo "<td class=\"date date_statechange\">".date("d-m-Y H:i:s", $row[4])."</td>";
+                            echo "<td class=\"date date_lastcheck\">".date("d-m-Y H:i:s", $row[5])."</td>";
+                            break;
+                        case "ndoutils":
+                            echo "<td class=\"date date_statechange\">".$row[4]."</td>";
+                            echo "<td class=\"date date_lastcheck\">".$row[5]."</td>";
+                            break;
+                    }
+                    ?>
                 </tr>
                 <?php 
             }

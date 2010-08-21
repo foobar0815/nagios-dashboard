@@ -183,7 +183,7 @@ $db = mysql_select_db("ndoutils", $con);
                     $query = $query." AND nagios_servicestatus.problem_has_been_acknowledged = 0";
                     $query = $query." AND nagios_hoststatus.problem_has_been_acknowledged = 0";
                     $query = $query." AND nagios_hoststatus.last_hard_state != 1";
-                    $query = $query." ORDER BY nagios_servicestatus.last_hard_state";
+                    $query = $query." ORDER BY nagios_servicestatus.last_hard_state DESC, nagios_hosts.display_name, nagios_services.display_name";
                     break;
             }
             $result = mysql_query($query);

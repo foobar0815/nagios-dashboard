@@ -17,7 +17,7 @@
             body {
                 font-family: sans-serif;
                 line-height: 1.4em;
-        		overflow-x: hidden;
+                overflow-x: hidden;
                 background: #404040;
                 padding: .5em 1em;
             }
@@ -55,6 +55,7 @@
             .dash_wrapper {
                 background: white;
                 padding: 1em;
+                border-radius: .5em;
                 -moz-border-radius: .5em;
             }
             .dash_unhandled {
@@ -75,6 +76,8 @@
             }
             
             .dash_table_head {
+                background: #d3d3d3;
+                background: -webkit-gradient(linear, left top, left bottom, from(#d3d3d3), to(#bdbdbd));
                 background: -moz-linear-gradient(top center, #d3d3d3, #bdbdbd);
                 color: #181818;
                 text-shadow: 1px 1px 0 #ededed;
@@ -92,6 +95,8 @@
             }
             
             .critical {
+                background: #af1000;
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0.50, #af1000), color-stop(0.50, #990000));
                 background: -moz-linear-gradient(top center, #af1000 50%, #990000 50%);
                 color: white;
                 text-shadow: 1px 1px 0 #5f0000;
@@ -102,12 +107,16 @@
                 }
             
             .ok {
+                background: #00b400;
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0.50, #00b400), color-stop(0.50, #018f00));
                 background: -moz-linear-gradient(top center, #00b400 50%, #018f00 50%);
                 color: white;
                 text-shadow: 1px 1px 0 #015f00;
             }
  
             .warning {
+                background: yellow;
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0.50, yellow), color-stop(0.50, #edef00));
                 background: -moz-linear-gradient(top center, yellow 50%, #edef00 50%);
                 color: black;
                 text-shadow: -1px -1px 0 #feff5f;
@@ -137,6 +146,8 @@
             }
             
             .nagios_statusbar {
+                background: #6a6a6a;
+                background: -webkit-gradient(linear, left top, left bottom, from(#6a6a6a), to(#464646));
                 background: -moz-linear-gradient(top center, #6a6a6a, #464646);
                 position: fixed;
                 bottom: 0;
@@ -206,7 +217,7 @@
             
             function updateNagiosData(block){
                 $("#loading").fadeIn(200);
-    			block.load("./merlin.php", function(response){
+                block.load("./merlin.php", function(response){
                     $(this).html(response);
                     $("#loading").fadeOut(200);
                     createTimeStamp();
@@ -229,7 +240,7 @@
             }
             
         </script>
-	<div id="nagios_placeholder"></div>
+    <div id="nagios_placeholder"></div>
     <div class="nagios_statusbar">
         <div class="nagios_statusbar_item">
             <div id="timestamp_wrap"></div>

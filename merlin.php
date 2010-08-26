@@ -163,7 +163,7 @@ $db = mysql_select_db("ndoutils", $con);
                 </th>
             </tr>
             <? 
-            #ALL critical/warning services on hosts not being down
+            #ALL critical/warning services on hosts not being down or unreachable
             switch ($backend) {
                 case "merlin":
                     $query = "select service.host_name,service.service_description,service.last_hard_state,service.output, service.last_hard_state_change,service.last_check ";
@@ -182,7 +182,7 @@ $db = mysql_select_db("ndoutils", $con);
                     $query = $query." WHERE nagios_servicestatus.last_hard_state in (1,2)";
                     $query = $query." AND nagios_servicestatus.problem_has_been_acknowledged = 0";
                     $query = $query." AND nagios_hoststatus.problem_has_been_acknowledged = 0";
-                    $query = $query." AND nagios_hoststatus.last_hard_state != 1";
+                    $query = $query." AND nagios_hoststatus.last_hard_state = 0";
                     $query = $query." ORDER BY nagios_servicestatus.last_hard_state DESC, nagios_hosts.display_name, nagios_services.display_name";
                     break;
             }
